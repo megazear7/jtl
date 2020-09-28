@@ -1,5 +1,5 @@
 import chai from 'chai';
-import { jtl } from '../src/jtl.js';
+import { jtl } from '../src/index.js';
 
 const expect = chai.expect;
 
