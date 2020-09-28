@@ -6,7 +6,7 @@ const expect = chai.expect;
 describe('simple hello world', function () {
 const json = {
     name: "html",
-    attr: {
+    attrs: {
         "lang": "en"
     },
     children: [
@@ -22,6 +22,6 @@ const json = {
 
   it('renders the html', function () {
     expect(jtl(json).toHtmlString())
-    .eql(`<html lang="en"><head></head><body><h1>Hello, World!</h1></body>`)
+    .eql(`<html lang="en"><head></head><body><h1>Hello, World!</h1></body></html>`)
   });
 });
