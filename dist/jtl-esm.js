@@ -2,7 +2,7 @@ function jtl(json) {
     return new JTL(json);
 }
 
-// TODO: Self closing tags whitelist, events / function calls
+const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
 
 class JTL {
     constructor(json) {
@@ -24,17 +24,21 @@ class JTL {
     _buildElement(json) {
         let htmlStringArr = [];
 
-        htmlStringArr.push(this._buildElementOpenTag(json));
+        if (SELF_CLOSING_TAGS.includes(json.name)) {
+            htmlStringArr.push(this._buildElementCloseTag(json));
+        } else {
+            htmlStringArr.push(this._buildElementOpenTag(json));
 
-        if (json.content) {
-            htmlStringArr.push(json.content);
+            if (json.content) {
+                htmlStringArr.push(json.content);
+            }
+
+            if (json.children) {
+                json.children.forEach(child => htmlStringArr.push(this._buildElement(child)));
+            }
+
+            htmlStringArr.push(this._buildElementCloseTag(json));
         }
-
-        if (json.children) {
-            json.children.forEach(child => htmlStringArr.push(this._buildElement(child)));
-        }
-
-        htmlStringArr.push(this._buildElementCloseTag(json));
 
         return htmlStringArr.join('');
     }

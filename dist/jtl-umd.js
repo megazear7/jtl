@@ -13,8 +13,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
   function jtl(json) {
     return new JTL(json);
-  } // TODO: Self closing tags whitelist, events / function calls
+  }
 
+  var SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
 
   var JTL = /*#__PURE__*/function () {
     function JTL(json) {
@@ -42,19 +43,25 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var _this = this;
 
         var htmlStringArr = [];
-        htmlStringArr.push(this._buildElementOpenTag(json));
 
-        if (json.content) {
-          htmlStringArr.push(json.content);
+        if (SELF_CLOSING_TAGS.includes(json.name)) {
+          htmlStringArr.push(this._buildElementCloseTag(json));
+        } else {
+          htmlStringArr.push(this._buildElementOpenTag(json));
+
+          if (json.content) {
+            htmlStringArr.push(json.content);
+          }
+
+          if (json.children) {
+            json.children.forEach(function (child) {
+              return htmlStringArr.push(_this._buildElement(child));
+            });
+          }
+
+          htmlStringArr.push(this._buildElementCloseTag(json));
         }
 
-        if (json.children) {
-          json.children.forEach(function (child) {
-            return htmlStringArr.push(_this._buildElement(child));
-          });
-        }
-
-        htmlStringArr.push(this._buildElementCloseTag(json));
         return htmlStringArr.join('');
       }
     }, {
