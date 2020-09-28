@@ -13,17 +13,70 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
   function jtl(json) {
     return new JTL(json);
-  }
+  } // TODO: Self closing tags whitelist, events / function calls
+
 
   var JTL = /*#__PURE__*/function () {
     function JTL(json) {
       _classCallCheck(this, JTL);
+
+      if (_typeof(json) !== 'object') {
+        throw new Error('The first parameter of the JTL constructor must be a object');
+      }
+
+      this.json = json;
     }
 
     _createClass(JTL, [{
       key: "toHtmlString",
       value: function toHtmlString() {
-        return 'not implemented';
+        if (this.json === undefined) {
+          throw new Error('the toHtmlString method of the JTL object was called without any json configuration.');
+        }
+
+        return this._buildElement(this.json);
+      }
+    }, {
+      key: "_buildElement",
+      value: function _buildElement(json) {
+        var _this = this;
+
+        var htmlStringArr = [];
+        htmlStringArr.push(this._buildElementOpenTag(json));
+
+        if (json.content) {
+          htmlStringArr.push(json.content);
+        }
+
+        if (json.children) {
+          json.children.forEach(function (child) {
+            return htmlStringArr.push(_this._buildElement(child));
+          });
+        }
+
+        htmlStringArr.push(this._buildElementCloseTag(json));
+        return htmlStringArr.join('');
+      }
+    }, {
+      key: "_buildElementOpenTag",
+      value: function _buildElementOpenTag(json) {
+        return "<".concat(json.name).concat(this._buildElementAttrs(json), ">");
+      }
+    }, {
+      key: "_buildElementCloseTag",
+      value: function _buildElementCloseTag(json) {
+        return "</".concat(json.name, ">");
+      }
+    }, {
+      key: "_buildElementAttrs",
+      value: function _buildElementAttrs(json) {
+        if (json.attrs) {
+          return ' ' + Object.keys(json.attrs).map(function (key) {
+            return "".concat(key, "=\"").concat(json.attrs[key], "\"");
+          }).join(' ');
+        } else {
+          return '';
+        }
       }
     }]);
 

@@ -5,8 +5,6 @@ export function jtl(json) {
 // TODO: Self closing tags whitelist, events / function calls
 
 class JTL {
-    json = undefined;
-
     constructor(json) {
         if (typeof json !== 'object') {
             throw new Error('The first parameter of the JTL constructor must be a object');
