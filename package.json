@@ -1,0 +1,21 @@
+{
+  "name": "jtl",
+  "version": "1.0.0",
+  "description": "JSON to HTML Converter",
+  "type": "module",
+  "main": "src/jtl.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "JSON",
+    "HTML",
+    "Converter"
+  ],
+  "author": "Alex Lockhart",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.1.3"
+  }
+}
