@@ -39,7 +39,19 @@ describe('Interspersed content with child elements', function () {
     });
 
     it('creates the HtmlElement', function () {
-        expect(jtl(json, document).toHtmlElement().outerHTML)
+        expect(jtl(json, {}, document).toHtmlElement().outerHTML)
             .eql(expectation)
+    });
+
+    const unsafeExpectation = `<html lang="en"><head></head><body><div>first<span>second</span></div></body></html>`;
+
+    it('renders the unsafe html string', function () {
+        expect(jtl(json, { veryUnsafe: true }).toHtmlString())
+            .eql(unsafeExpectation)
+    });
+
+    it('creates the unsafe HtmlElement', function () {
+        expect(jtl(json, { veryUnsafe: true }, document).toHtmlElement().outerHTML)
+            .eql(unsafeExpectation)
     });
 });

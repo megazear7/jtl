@@ -16,13 +16,27 @@ describe('Partial html document', function () {
         ]
     }
 
+    const expectation = `<div><span>hello</span></div>`;
+
     it('renders the html string', function () {
         expect(jtl(json).toHtmlString())
-            .eql(`<div><span>hello</span></div>`)
+            .eql(expectation)
     });
 
     it('creates the HtmlElement', function () {
-        expect(jtl(json, document).toHtmlElement().outerHTML)
-            .eql(`<div><span>hello</span></div>`)
+        expect(jtl(json, {}, document).toHtmlElement().outerHTML)
+            .eql(expectation)
+    });
+
+    const unsafeExpectation = `<div><span>hello</span></div>`;
+
+    it('renders the unsafe html string', function () {
+        expect(jtl(json, { veryUnsafe: true }).toHtmlString())
+            .eql(unsafeExpectation)
+    });
+
+    it('creates the unsafe HtmlElement', function () {
+        expect(jtl(json, { veryUnsafe: true }, document).toHtmlElement().outerHTML)
+            .eql(unsafeExpectation)
     });
 });

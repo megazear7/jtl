@@ -1,16 +1,18 @@
-export function jtl(json, document) {
-    return new JTL(json, document);
+const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
+const UNSAFE_TAGS = ['script'];
+
+export function jtl(json, options, document) {
+    return new JTL(json, options, document);
 }
 
-const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
-
 class JTL {
-    constructor(json, document) {
+    constructor(json, { veryUnsafe = false } = {}, document) {
         if (typeof json !== 'object') {
             throw new JtlError('The first parameter of the JTL constructor must be a object');
         }
 
         this.json = json;
+        this.veryUnsafe = veryUnsafe;
 
         if (document) {
             this.document = document;
@@ -22,21 +24,22 @@ class JTL {
     }
 
     toHtmlString() {
-        return new JTLStringBuilder(this.json).buildElement();
+        return new JTLStringBuilder(this.json, { veryUnsafe: this.veryUnsafe }).buildElement();
     }
 
     toHtmlElement() {
-        if (! this.document) {
+        if (!this.document) {
             throw new JtlError('window.document is undefined and no document was passed into the jtl method. If you are running this in Node.JS then you will need to pass in a window.document shim into the second parameter of the jtl method.');
         }
 
-        return new JTLElementBuilder(this.json, this.document).buildElement();
+        return new JTLElementBuilder(this.json, { veryUnsafe: this.veryUnsafe }, this.document).buildElement();
     }
 }
 
 class JTLStringBuilder {
-    constructor(json) {
+    constructor(json, { veryUnsafe = false } = {}) {
         this.json = json;
+        this.veryUnsafe = veryUnsafe;
     }
 
     buildElement() {
@@ -51,11 +54,15 @@ class JTLStringBuilder {
                 throw new JtlFormatError('A node must either have a name or content property or both.');
             }
 
-            return json.content;
+            return removeTags(json.content);
         }
     }
 
     _buildElement(json) {
+        if (UNSAFE_TAGS.includes(json.name) && !this.veryUnsafe) {
+            return '';
+        }
+
         let htmlStringArr = [];
 
         if (typeof json.name !== 'string') {
@@ -63,7 +70,7 @@ class JTLStringBuilder {
         }
 
         if (SELF_CLOSING_TAGS.includes(json.name)) {
-            htmlStringArr.push(this._buildElementSelfClosingTag(json));
+            htmlStringArr.push(this._buildElementOpenTag(json));
         } else {
             htmlStringArr.push(this._buildElementOpenTag(json));
 
@@ -72,7 +79,7 @@ class JTLStringBuilder {
                     throw new JtlFormatError('Content propery of an element must be a string.');
                 }
 
-                htmlStringArr.push(json.content);
+                htmlStringArr.push(removeTags(json.content));
             }
 
             if (json.children) {
@@ -80,7 +87,13 @@ class JTLStringBuilder {
                     throw new JtlFormatError('Child property must be an array of objects');
                 }
 
-                json.children.forEach(child => htmlStringArr.push(this._buildNode(child)));
+                json.children.forEach(child => {
+                    let node = this._buildNode(child);
+
+                    if (node) {
+                        htmlStringArr.push(node);
+                    }
+                });
             }
 
             htmlStringArr.push(this._buildElementCloseTag(json));
@@ -97,10 +110,6 @@ class JTLStringBuilder {
         return `</${json.name}>`;
     }
 
-    _buildElementSelfClosingTag(json) {
-        return `<${json.name}>`;
-    }
-
     _buildElementAttrs(json) {
         if (json.attrs) {
             return ' ' + Object.keys(json.attrs).map(key => {
@@ -108,8 +117,12 @@ class JTLStringBuilder {
                     throw new JtlFormatError('All properties of the "attrs" property must by strings.');
                 }
 
-                return `${key}="${json.attrs[key]}"`;
-            }).join(' ');
+                if ((!key.startsWith('on')) || this.veryUnsafe) {
+                    return `${key}="${json.attrs[key]}"`;
+                } else {
+                    return '';
+                }
+            }).filter(str => str).join(' ');
         } else {
             return '';
         }
@@ -117,8 +130,9 @@ class JTLStringBuilder {
 }
 
 class JTLElementBuilder {
-    constructor(json, document) {
+    constructor(json, { veryUnsafe = false } = {}, document) {
         this.json = json;
+        this.veryUnsafe = veryUnsafe;
         this.document = document;
     }
 
@@ -134,11 +148,15 @@ class JTLElementBuilder {
                 throw new JtlFormatError('A node must either have a name or content property or both.');
             }
 
-            return this.document.createTextNode(json.content);
+            return this.document.createTextNode(removeTags(json.content));
         }
     }
 
     _buildElement(json) {
+        if (UNSAFE_TAGS.includes(json.name) && !this.veryUnsafe) {
+            return undefined;
+        }
+
         let element = this.document.createElement(json.name);
 
         if (json.attrs) {
@@ -151,7 +169,9 @@ class JTLElementBuilder {
                     throw new JtlFormatError('All properties of the "attrs" property must by strings.');
                 }
 
-                element.setAttribute(key, json.attrs[key]);
+                if ((!key.startsWith('on')) || this.veryUnsafe) {
+                    element.setAttribute(key, json.attrs[key]);
+                }
             });
         }
 
@@ -161,7 +181,7 @@ class JTLElementBuilder {
                     throw new JtlFormatError('"content" propery of an element must be a string.');
                 }
 
-                element.appendChild(this.document.createTextNode(json.content));
+                element.appendChild(this.document.createTextNode(removeTags(json.content)));
             }
 
             if (json.children) {
@@ -169,7 +189,13 @@ class JTLElementBuilder {
                     throw new JtlFormatError('"children" property must be an array of objects');
                 }
 
-                json.children.forEach(child => element.appendChild(this._buildNode(child)));
+                json.children.forEach(child => {
+                    let node = this._buildNode(child);
+
+                    if (node) {
+                        element.appendChild(node);
+                    }
+                });
             }
         }
 
@@ -189,4 +215,28 @@ class JtlFormatError extends JtlError {
         super(message);
         this.name = "JtlFormatError";
     }
+}
+
+let tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
+
+let tagOrComment = new RegExp(
+    '<(?:'
+    // Comment body.
+    + '!--(?:(?:-*[^->])*--+|-?)'
+    // Special "raw text" elements whose content should be elided.
+    + '|script\\b' + tagBody + '>[\\s\\S]*?</script\\s*'
+    + '|style\\b' + tagBody + '>[\\s\\S]*?</style\\s*'
+    // Regular name
+    + '|/?[a-z]'
+    + tagBody
+    + ')>',
+    'gi');
+
+function removeTags(html) {
+    let oldHtml;
+    do {
+        oldHtml = html;
+        html = html.replace(tagOrComment, '');
+    } while (html !== oldHtml);
+    return html.replace(/</g, '&lt;');
 }

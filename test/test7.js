@@ -5,26 +5,20 @@ import Element from 'html-element';
 const document = Element.document;
 const expect = chai.expect;
 
-describe('self closing tag test', function () {
+describe('XSS attack does not work', function () {
     const json = {
-        name: "html",
-        attrs: {
-            "lang": "en"
-        },
+        name: "div",
         children: [
-            { name: "head" },
             {
-                name: "body",
-                children: [
-                    { name: "br" }
-                ]
+                name: "span",
+                content: "<script>console.log('hello, world');</script>"
             }
         ]
     }
 
-    const expectation = `<html lang="en"><head></head><body><br></body></html>`;
+    const expectation = `<div><span></span></div>`;
 
-    it('renders the html', function () {
+    it('renders the html string', function () {
         expect(jtl(json).toHtmlString())
             .eql(expectation)
     });
@@ -34,7 +28,7 @@ describe('self closing tag test', function () {
             .eql(expectation)
     });
 
-    const unsafeExpectation = `<html lang="en"><head></head><body><br></body></html>`;
+    const unsafeExpectation = `<div><span></span></div>`;
 
     it('renders the unsafe html string', function () {
         expect(jtl(json, { veryUnsafe: true }).toHtmlString())
