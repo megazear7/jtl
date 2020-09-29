@@ -1,6 +1,8 @@
 import chai from 'chai';
 import { jtl } from '../src/index.js';
+import Element from 'html-element';
 
+const document = Element.document;
 const expect = chai.expect;
 
 describe('Content with child elements', function () {
@@ -35,8 +37,15 @@ describe('Content with child elements', function () {
         ]
     }
 
-    it('renders the html', function () {
+    const expectation = `<html lang="en"><head></head><body><div>beginning<span>element 1</span>middle<span>element 2</span>end</div></body></html>`;
+
+    it('renders the html string', function () {
         expect(jtl(json).toHtmlString())
-            .eql(`<html lang="en"><head></head><body><div>beginning<span>element 1</span>middle<span>element 2</span>end</div></body></html>`)
+            .eql(expectation)
+    });
+
+    it('creates the HtmlElement', function () {
+        expect(jtl(json, document).toHtmlElement().outerHTML)
+            .eql(expectation)
     });
 });
