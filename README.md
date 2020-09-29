@@ -39,7 +39,6 @@ This will output the following html:
 
 ### Planned features
 
-1. A `toFormattedHtmlString` method
 1. A `toHtmlElement` method that returns an HtmlElement object.
 
 ## Contribute

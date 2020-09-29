@@ -37,6 +37,6 @@ describe('Content with child elements', function () {
 
     it('renders the html', function () {
         expect(jtl(json).toHtmlString())
-            .eql(`<html lang="en"><head></head><body><div>firstbeginning<span>element 1</span>middle<span>element 2</span>end</div></body></html>`)
+            .eql(`<html lang="en"><head></head><body><div>beginning<span>element 1</span>middle<span>element 2</span>end</div></body></html>`)
     });
 });
