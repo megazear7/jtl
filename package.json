@@ -1,5 +1,5 @@
 {
-  "name": "jtl",
+  "name": "@megazear7/jtl",
   "version": "1.0.0",
   "description": "JSON to HTML Converter",
   "type": "module",
