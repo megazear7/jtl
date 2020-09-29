@@ -7,7 +7,7 @@ const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'i
 class JTL {
     constructor(json) {
         if (typeof json !== 'object') {
-            throw new Error('The first parameter of the JTL constructor must be a object');
+            throw new JtlError('The first parameter of the JTL constructor must be a object');
         }
 
         this.json = json;
@@ -15,7 +15,7 @@ class JTL {
 
     toHtmlString() {
         if (this.json === undefined) {
-            throw new Error('the toHtmlString method of the JTL object was called without any json configuration.')
+            throw new JtlError('the toHtmlString method of the JTL object was called without any json configuration.')
         }
 
         return this._buildElement(this.json);
@@ -24,20 +24,28 @@ class JTL {
     _buildElement(json) {
         let htmlStringArr = [];
 
-        if (SELF_CLOSING_TAGS.includes(json.name)) {
-            htmlStringArr.push(this._buildElementCloseTag(json));
+        if (json.name) {
+            if (SELF_CLOSING_TAGS.includes(json.name)) {
+                htmlStringArr.push(this._buildElementCloseTag(json));
+            } else {
+                htmlStringArr.push(this._buildElementOpenTag(json));
+
+                if (json.content) {
+                    htmlStringArr.push(json.content);
+                }
+
+                if (json.children) {
+                    json.children.forEach(child => htmlStringArr.push(this._buildElement(child)));
+                }
+
+                htmlStringArr.push(this._buildElementCloseTag(json));
+            }
         } else {
-            htmlStringArr.push(this._buildElementOpenTag(json));
-
-            if (json.content) {
-                htmlStringArr.push(json.content);
+            if (! json.content) {
+                throw new JtlFormatError('An object within a child array must either have a name or content property or both.');
             }
 
-            if (json.children) {
-                json.children.forEach(child => htmlStringArr.push(this._buildElement(child)));
-            }
-
-            htmlStringArr.push(this._buildElementCloseTag(json));
+            htmlStringArr.push(json.content);
         }
 
         return htmlStringArr.join('');
@@ -57,5 +65,19 @@ class JTL {
         } else {
             return '';
         }
+    }
+}
+
+class JtlError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "JtlError";
+    }
+}
+
+class JtlFormatError extends JtlError {
+    constructor(message) {
+        super(message);
+        this.name = "JtlFormatError";
     }
 }
