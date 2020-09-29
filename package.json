@@ -27,5 +27,13 @@
     "rollup-plugin-babel-minify": "^10.0.0",
     "rollup-plugin-uglify": "^6.0.4"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/megazear7/jtl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/megazear7/jtl/issues"
+  },
+  "homepage": "https://github.com/megazear7/jtl"
 }
