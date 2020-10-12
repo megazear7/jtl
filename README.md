@@ -1,6 +1,8 @@
 # JTL
 
-> JSON to HTML Converter
+> JSON Templating Language
+
+Visit the documenation at [jtl.alexlockhart.me](https://jtl.alexlockhart.me) or visit us on [NPM](https://www.npmjs.com/package/@megazear7/jtl).
 
 JTL allows you to convert properly formatted json into html. What you do with that html is up to you.
 
