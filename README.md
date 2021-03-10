@@ -64,3 +64,9 @@ npm run test
 ```
 npm run build
 ```
+
+## Support
+
+[Buy me a coffee](https://www.buymeacoffee.com/alexlockhart)
+
+[Patreon](https://www.patreon.com/alexlockhart)
